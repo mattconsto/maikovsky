@@ -111,7 +111,7 @@ var title = "Untitled";
 var meter = "4/4";
 var key   = "C";
 var music = "";
-var abc   = "T:Untitled\nM:4/4\nK:C\n%%MIDI program 1";
+var abc   = "T:Untitled\nM:4/4\nK:C";
 
 function generateMusic() {
 	if(typeof(tunes) === "undefined") return;
@@ -123,10 +123,19 @@ function generateMusic() {
 }
 
 function generateABC() {
-	abc = "T:" + title + "\nM:" + meter + "\nK:" + key + "\n%%MIDI program " + instr + "\n" + music;
+	abc = "T:" + title + "\nM:" + meter + "\nK:" + key + "\n" + music;
 	console.log(abc);
 	ABCJS.renderAbc('notation', abc);
-	ABCJS.renderMidi('midi', abc);
+	ABCJS.renderMidi('midi', abc, {
+		inlineControls: {
+			loopToggle: true,
+			tempo: true,
+		},
+		program: instr,
+		generateDownload: true,
+		downloadLabel: "Download Midi",
+		downloadClass: "download-link",
+	});
 }
 
 ajaxGET('music/jigs.abc', function(response) {
