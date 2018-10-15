@@ -170,7 +170,7 @@ function generateMusic() {
 
 function generateABC() {
 	abc = "T:" + title + "\nM:" + meter + "\nK:" + key + "\n" + music;
-	console.log(abc);
+	// console.log(abc);
 	ABCJS.renderAbc('notation', abc);
 	ABCJS.renderMidi('midi', abc, {
 		inlineControls: {
@@ -182,8 +182,19 @@ function generateABC() {
 		downloadLabel: "Download Midi",
 		downloadClass: "download-link",
 		add_classes: true,
+		responsive: "resize"
 	});
 
+	document.getElementById('notation').firstChild.addEventListener('click', function(event) {
+		console.log(event);
+
+		if(event.target.innerHTML === title) {
+			title = prompt("Please Enter a New Name", title) || title;
+			generateABC();
+		}
+	})
+
+	document.getElementById("editor").value = music;
 	document.getElementById("download").href = "data:plain/text," + escape(abc);
 	document.getElementById("download").download = escape(title.trim()).replace(/%../g, "-").replace(/--+/g, "-") + ".abc";
 }
