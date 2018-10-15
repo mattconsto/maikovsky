@@ -171,7 +171,10 @@ function generateMusic() {
 function generateABC() {
 	abc = "T:" + title + "\nM:" + meter + "\nK:" + key + "\n" + music;
 	// console.log(abc);
-	ABCJS.renderAbc('notation', abc);
+	ABCJS.renderAbc('notation', abc, {
+		add_classes: true,
+		responsive: "resize"
+	});
 	ABCJS.renderMidi('midi', abc, {
 		inlineControls: {
 			loopToggle: true,
@@ -181,8 +184,6 @@ function generateABC() {
 		generateDownload: true,
 		downloadLabel: "Download Midi",
 		downloadClass: "download-link",
-		add_classes: true,
-		responsive: "resize"
 	});
 
 	document.getElementById('notation').firstChild.addEventListener('click', function(event) {
