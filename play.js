@@ -27,41 +27,54 @@ function randomPick(list) {
 	return list[Math.floor(Math.random() * list.length)];
 }
 
-function generateMarkov(data) {
-	/* Converts an array to a 1D Markov Chain */
-	var chain = {};
+function generateMarkov(data, length) {
+	/* Converts an array to a nD Markov Chain */
+	/* Each entry in the chain is a pair of [count, chain] */
+	var chain = [0, {}];
 
 	data.forEach(function(line) {
 		for(var i = 0; i < line.length + 1; i++) {
-			/* Use the empty string to track start and stop */
-			var then = i > 0 ? line[i-1] : "";
-			var now  = i < line.length ? line[i] : "";
-
-			if(!(then in chain)) chain[then] = {total: 0};
-			if(!(now in chain[then])) chain[then][now] = 0;
-
-			chain[then][now] += 1;
-			chain[then].total += 1;
+			var target = chain;
+			target[0] += 1;
+			for(var l = length + 1; l >= 0; l--) {
+				/* Use the empty string to track start and stop */
+				var now = i >= l && i < line.length ? line[i-l] : "";
+				/* Add if missing */
+				if(!(now in target[1])) target[1][now] = [0, {}];
+				/* Follow the chain */
+				target = target[1][now];
+				/* Increment count */
+				target[0] += 1;
+			}
 		}
-	})
+	});
 
+	console.log(chain);
 	return chain;
 }
 
-function generateWord(chain) {
-	var next = "", current = "", result = "";
+function generateWord(chain, length, limit) {
+	var result = "";
 
 	do {
-		var number = randomInt(chain[current].total - 1);
-		for(var character in chain[current]) {
-			if(character === "total") continue;
-			next = character;
-			number -= chain[current][character];
+		var target = chain;
+		/* Descend until we cannot */
+		for(var depth = length; depth >= 0; depth--) {
+			var character = result.length > depth ? result[result.length-depth] : "";
+			if(!(character in target[1]) || target[1][character][1].length <= 0) break;
+			target = target[1][character];
+		}
+		
+		/* Pick a character */
+		var character;
+		var number = randomInt(target[0]);
+		for(character in target[1]) {
+			number -= target[1][character][0];
 			if(number <= 0) break;
 		}
-		result += next;
-		current = next;
-	} while(current !== "" && result.length <= 1000);
+		result += character;
+		if(character === "") break;
+	} while(result.length <= limit);
 
 	return result;
 }
@@ -97,12 +110,26 @@ function parseABC(response) {
 				} else {
 					/* Tunes */
 					if(!(part in result.music)) result.music[part] = "";
+					if(result.music[part].length > 0) result.music[part] += "\n";
 					result.music[part] += lines[i];
 				}
 			}
 
 			return result;
 		});
+}
+
+function stringDivider(str, width, breaker, spacer) {
+	if (str.length > width) {
+		var p = width;
+		for (;p>0 && str[p]!=breaker;p--) {}
+		if (p>0) {
+			var left = str.substring(0, p);
+			var right = str.substring(p+1);
+			return left + spacer + stringDivider(right, width, spacer);
+		}
+	}
+	return str;
 }
 
 var tunes;
@@ -112,14 +139,33 @@ var meter = "4/4";
 var key   = "C";
 var music = "";
 var abc   = "T:Untitled\nM:4/4\nK:C";
+var chords = false;
+var iterations = 7;
 
 function generateMusic() {
 	if(typeof(tunes) === "undefined") return;
 
-	title = generateWord(generateMarkov(tunes.map(function(tune) {return tune.meta.T;})));
+	var wordMarkov = generateMarkov(tunes.map(function(tune) {return tune.meta.T.replace(/[\(\)\[\]]/g, "");}), Math.round(iterations/2));
+	for(var i = 0; (i === 0 || title.length < 3) && i < 200; i++) {
+		title = generateWord(wordMarkov, Math.round(iterations/2), 30).substring(1).trim();
+	}
 	meter = randomPick(tunes.map(function(tune) {return tune.meta.M;}));
-	key = randomPick(tunes.map(function(tune) {return tune.meta.K;}));
-	music = generateWord(generateMarkov(tunes.map(function(tune) {return Object.values(tune.music)[0];})));
+	key   = randomPick(tunes.map(function(tune) {return tune.meta.K;}));
+	var musicMarkov = generateMarkov(tunes.map(function(tune) {
+		/* Horrible isn't it */
+		if(chords) return Object.values(tune.music)[0];
+
+		return Object.values(tune.music)[0]
+			.replace(/"[a-zA-Z\^=_]*"/g, "")
+			.replace(/"/g, "")
+			.replace(/\[[a-zA-Z0-9\^=_]\]/g, "")
+			.replace(/[\[\d]/g, "");
+	}), iterations);
+	for(var i = 0; (i === 0 || music.length < 10) && i < 200; i++) {
+		music = generateWord(musicMarkov, iterations, 500);
+	}
+	/* Force some new lines */
+	music = music.split("\n").map(function(line) {return stringDivider(line, 40, "|", "|");}).join("\n");
 }
 
 function generateABC() {
@@ -135,6 +181,7 @@ function generateABC() {
 		generateDownload: true,
 		downloadLabel: "Download Midi",
 		downloadClass: "download-link",
+		add_classes: true,
 	});
 }
 

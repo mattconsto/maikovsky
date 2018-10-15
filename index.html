@@ -6,7 +6,8 @@
 	<title>Markov Folk</title>
 	<link href="//abcjs.net/abcjs-midi.css" rel="stylesheet" />
 	<style>
-		#notation, #midi, #controls {max-width: fit-content; margin: 0 auto;}
+		#notation, #midi, #controls, #credit {max-width: fit-content; margin: 0 auto;}
+		/*svg text[stroke="#ff0000"] {display: none; /* Goodbye pitch is undefined */} */
 	</style>
 
 	<script src="//abcjs.net/abcjs_midi_5.1.2-min.js"></script>
@@ -147,7 +148,10 @@
 			<option value="127">Applause</option>
 			<option value="128">Gunshot</option>
 		</select>
+		<label>Chords: <input type="checkbox" onchange="chords=this.checked;" /></label>
+		<label>Iterations: <input type="number" value="7" min="1" max="50" onchange="iterations=this.value;" /></label>
 		<button onclick="generateMusic(); generateABC();">New Tune</button>
 	</div>
+	<div id="credit">By <a href="https://consto.uk">Matt Consto</a></div>
 </body>
 </html>
