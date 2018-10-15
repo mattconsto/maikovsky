@@ -187,8 +187,7 @@ function generateABC() {
 	});
 
 	document.getElementById('notation').firstChild.addEventListener('click', function(event) {
-		console.log(event);
-
+		// console.log(event);
 		if(event.target.innerHTML === title) {
 			title = prompt("Please Enter a New Name", title) || title;
 			generateABC();
