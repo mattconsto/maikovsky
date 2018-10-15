@@ -183,6 +183,9 @@ function generateABC() {
 		downloadClass: "download-link",
 		add_classes: true,
 	});
+
+	document.getElementById("download").href = "data:plain/text," + escape(abc);
+	document.getElementById("download").download = escape(title.trim()).replace(/%../g, "-").replace(/--+/g, "-") + ".abc";
 }
 
 ajaxGET('music/jigs.abc', function(response) {
