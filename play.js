@@ -169,7 +169,7 @@ function generateMusic() {
 }
 
 function generateABC() {
-	abc = "T:" + title + "\nM:" + meter + "\nK:" + key + "\n" + music;
+	abc = "T:" + title + "\nM:" + meter + "\nK:" + key + "\nC:consto.uk\n" + music;
 	// console.log(abc);
 	ABCJS.renderAbc('notation', abc, {
 		add_classes: true,
