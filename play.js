@@ -49,7 +49,6 @@ function generateMarkov(data, length) {
 		}
 	});
 
-	console.log(chain);
 	return chain;
 }
 
@@ -116,7 +115,8 @@ function parseABC(response) {
 			}
 
 			return result;
-		});
+		})
+		.filter(function(tune) {return tune.music.A != undefined;});
 }
 
 function stringDivider(str, width, breaker, spacer) {
@@ -153,9 +153,9 @@ function generateMusic() {
 	key   = randomPick(tunes.map(function(tune) {return tune.meta.K;}));
 	var musicMarkov = generateMarkov(tunes.map(function(tune) {
 		/* Horrible isn't it */
-		if(chords) return Object.values(tune.music)[0];
+		if(chords) return tune.music.A;
 
-		return Object.values(tune.music)[0]
+		return tune.music.A
 			.replace(/"[a-zA-Z\^=_]*"/g, "")
 			.replace(/"/g, "")
 			.replace(/\[[a-zA-Z0-9\^=_]\]/g, "")
@@ -170,24 +170,29 @@ function generateMusic() {
 
 function generateABC() {
 	abc = "T:" + title + "\nM:" + meter + "\nK:" + key + "\nC:consto.uk\n" + music;
-	// console.log(abc);
+
 	ABCJS.renderAbc('notation', abc, {
 		add_classes: true,
 		responsive: "resize"
 	});
-	ABCJS.renderMidi('midi', abc, {
-		inlineControls: {
-			loopToggle: true,
-			tempo: true,
-		},
-		program: instr,
-		generateDownload: true,
-		downloadLabel: "Download Midi",
-		downloadClass: "download-link",
-	});
+
+	var isIE = window.navigator.userAgent.match(/MSIE|Trident/) !== null;
+	if(!isIE) {
+		ABCJS.renderMidi('midi', abc, {
+			inlineControls: {
+				loopToggle: true,
+				tempo: true,
+			},
+			program: instr,
+			generateDownload: true,
+			downloadLabel: "Download Midi",
+			downloadClass: "download-link",
+		});
+	} else {
+		document.getElementById("midi").innerText = "Not supported in Internet Explorer";
+	}
 
 	document.getElementById('notation').firstChild.addEventListener('click', function(event) {
-		// console.log(event);
 		if(event.target.innerHTML === title) {
 			title = prompt("Please Enter a New Name", title) || title;
 			generateABC();
