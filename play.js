@@ -176,8 +176,7 @@ function generateABC() {
 		responsive: "resize"
 	});
 
-	var isIE = window.navigator.userAgent.match(/MSIE|Trident/) !== null;
-	if(!isIE) {
+	if(typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
 		ABCJS.renderMidi('midi', abc, {
 			inlineControls: {
 				loopToggle: true,
@@ -189,7 +188,7 @@ function generateABC() {
 			downloadClass: "download-link",
 		});
 	} else {
-		document.getElementById("midi").innerText = "Not supported in Internet Explorer";
+		document.getElementById("midi").innerText = "Listening requires a modern browser";
 	}
 
 	document.getElementById('notation').firstChild.addEventListener('click', function(event) {
